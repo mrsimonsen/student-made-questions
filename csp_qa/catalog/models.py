@@ -22,47 +22,55 @@ def v_MA(value):
         _(f'Must have a least 3 choices')
         )
 
-class Format(models.Model):
-    '''question format type'''
-    FORMATS = (
-    ('FB', 'Fill in the Blank'),
-    ('MA', 'Multiple Answer'),
-    ('MC','Multiple Choice'),
-    ('SA', 'Short Answer'),
-    ('TF','True/False'),
+
+class TF(models.Model):
+    '''a model representing a TF question'''
+    c=(('T','True'),('F','False'))
+    correct = models.CharField(
+    max_length=1,
+    choices=c,
+    default='T',
     )
 
-    format = models.charField(
-    max_length=2,
-    choices=FORMATS,
-    default='MC',
-    help_text='question format')
-
-    if format not in ("TF","SA"): #no numbers for TF or SA
-        if format == "MC":
-            d=4
-            v_n="Number of choices"
-            v=[v_MC]
-        elif format == "FB":
-            d=1
-            v_n="Number of blanks"
-            v=[v_FB]
-        elif format == 'MA':
-            d=3,
-            v_n="Number of choices"
-            v=[v_MA]
-        num_responses = models.PositiveSmallIntegerField(
-        default=d,
-        verbose_name=v_n,
-        validators=v
-        )
-
-
     def __str__(self):
-        return self.format
+        return self.correct
+
+class SA(models.Model):
+    '''a model representing a SA question'''
+    answer = models.CharField(max_length=100)
+    def __str__(self):
+        return self.answer
+
+class FB(models.Model):
+    '''a model representing a FB question'''
+    num = models.PositiveSmallIntegerField(
+    default=1,
+    verbose_name='Number of blanks',
+    validators=[v_FB],
+    )
+
+
+class MC(models.Model):
+    '''a model representing a MC question'''
+    num = models.PositiveSmallIntegerField(
+    default=4,
+    verbose_name='Number of choices',
+    validators=[v_MC],
+    )
+
+class MA(models.Model):
+    '''a model representing a MC question'''
+    num = models.PositiveSmallIntegerField(
+    default=4,
+    verbose_name='Number of choices',
+    validators=[v_MA],
+    )
 
 class Question(models.Model):
-    '''a model representing a question'''
+    '''a unique question'''
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, help_text='unique ID for this question')
+    format = models.ForeignKey('Format', on_delete=models.SET_NULL,null=True)
     question = models.TextField()
 
-    format = models.ForeignKey('Format')
+    def __str__(self):
+        return f'{id} - {format}:{question}'
