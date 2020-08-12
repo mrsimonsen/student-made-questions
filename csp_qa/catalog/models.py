@@ -1,104 +1,96 @@
 from django.db import models
 from django.urls import reverse #Used to generate URLS by reversing the URL pattern
-import uuid #required for primary keys?
 
-#custom validators
-from django.core.exceptions import ValidationError
-from django.utils.translation import gettext_lazy as _
-
-def v_MC(value):
-    if 5 < value or value < 3:
-        raise ValidationError(
-        _(f'Must have 3 to 5 choices'),
-        )
-def v_FB(value):
-    if value <= 0:
-        raise ValidationError(
-        _(f'Must have at least 1 blank')
-        )
-def v_MA(value):
-    if value < 3:
-        raise VaildationError(
-        _(f'Must have a least 3 choices')
-        )
-
-
-class TF(models.Model):
-    '''a model representing a TF question'''
-    c=(('T','True'),('F','False'))
-    correct = models.CharField(
-    max_length=1,
-    choices=c,
-    default='T',
-    )
-
-    def __str__(self):
-        return self.correct
-
-class SA(models.Model):
-    '''a model representing a SA question'''
-    answer = models.CharField(max_length=100)
-    def __str__(self):
-        return self.answer
-
-class FB(models.Model):
-    '''a model representing a FB question'''
-    num = models.PositiveSmallIntegerField(
-    default=1,
-    verbose_name='Number of blanks',
-    validators=[v_FB],
-    )
-
-
-class MC(models.Model):
-    '''a model representing a MC question'''
-    num = models.PositiveSmallIntegerField(
-    default=4,
-    verbose_name='Number of choices',
-    validators=[v_MC],
-    )
-
-class MA(models.Model):
-    '''a model representing a MC question'''
-    num = models.PositiveSmallIntegerField(
-    default=4,
-    verbose_name='Number of choices',
-    validators=[v_MA],
-    )
-
-class Question(models.Model):
-    '''a unique question'''
-    FORMATS = (
-    ('FB','Fill in the Blank'),
-    ('MA', 'Multiple Answer'),
-    ('MC', 'Multiple Choice'),
-    ('SA', 'Short Answer'),
-    ('TF', 'True/False')
-    )
-    format = models.CharField(max_length=2, default='MC', choices=FORMATS, help_text='question format')
+class TF_Question(models.Model):
+    '''a True/False question'''
+    assignment = models.ForeignKey('Assignment', on_delete=models.CASCADE)
     question = models.TextField()
-
-    '''if format not in ("TF","SA"): #no numbers for TF or SA
-        d=0
-        v_n=''
-        v=[]
-        if format == "MC":
-            d=4
-            v_n="Number of choices"
-            v=[v_MC]
-        elif format == "FB":
-            d=1
-            v_n="Number of blanks"
-            v=[v_FB]
-        elif format == 'MA':
-            d=3,
-            v_n="Number of choices"
-            v=[v_MA]
-        num_responses = models.PositiveSmallIntegerField(
-        default=d,
-        verbose_name=v_n,
-        validators=v,
-        )'''
+    original = models.BooleanField(verbose_name='Is Original Question?', default=True, help_text="check means yes")
+    c = (('T','True'),('F','False'))
+    response = models.CharField(max_length=1,choices=c,verbose_name='Correct response',default='T')
 
     def __str__(self):
-        return f'{id} - {format}:{question}'
+        return f'TF: {self.question[:25]}'
+
+class SA_Question(models.Model):
+    '''a Short Answer question'''
+    assignment = models.ForeignKey('Assignment', on_delete=models.CASCADE)
+    question = models.TextField()
+    original = models.BooleanField(verbose_name='Is Original Question?', default=True, help_text="check means yes")
+    response = models.CharField(max_length=200,verbose_name='Correct response')
+
+    def __str__(self):
+        return f'SA: {self.question[:25]}'
+
+class MC_Question(models.Model):
+    '''a Multiple Choice question'''
+    assignment = models.ForeignKey('Assignment', on_delete=models.CASCADE)
+    question = models.TextField()
+    original = models.BooleanField(verbose_name='Is Original Question?', default=True, help_text="check means yes")
+    c = models.CharField(max_length=200,verbose_name='Correct choice')
+    r1 = models.CharField(max_length=200,verbose_name='Wrong choice')
+    r2 = models.CharField(max_length=200,verbose_name='Wrong choice')
+    r3 = models.CharField(max_length=200,verbose_name='Wrong choice')
+
+    def __str__(self):
+        return f'MC: {self.question[:25]}'
+
+class FB_Question(models.Model):
+    '''a Fill in the Blank question'''
+    assignment = models.ForeignKey('Assignment', on_delete=models.CASCADE)
+    question = models.TextField(verbose_name='Question',help_text='use a single underscore "_" to mark a blank')
+    original = models.BooleanField(verbose_name='Is Original Question?', default=True, help_text="check means yes")
+    blanks = models.CharField(max_length=200,help_text='use semi-colons ";" to seperate blanks')
+    num_blanks = models.PositiveSmallIntegerField(verbose_name='How many blanks?',help_text='this helps me catch errors')
+
+    def __str__(self):
+        return f'FB: {self.question[:25]}'
+
+class Assignment(models.Model):
+    '''an Assignment with 10 questions'''
+    NAMES = (
+    ('1','1: Early Computing'),
+    ('2','2: Electronic Computing'),
+    ('3','3: Boolean Logic & Logic Gates'),
+    ('4','4: Representing Numbers and Letters with Binary'),
+    ('5','5: How Computers Calculate - the ALU'),
+    ('6','6: Registers and RAM'),
+    ('7','7: The Central Processing Unit (CPU)'),
+    ('8','8: Instructions & Programs'),
+    ('9','9: Advanced CPU Designs'),
+    ('10','10: Early Programming'),
+    ('11','11: The First Programming Languages'),
+    ('12','12: Programming Basics: Statements & Functions'),
+    ('13','13: Intro to Algorithms'),
+    ('14','14: Data Structures'),
+    ('15','15: Alan Turing'),
+    ('16','16: Software Engineering'),
+    ('17','17: Integrated Circuits & Moore\'s Law'),
+    ('18','18: Operating Systems'),
+    ('19','19: Memory & Storage'),
+    ('20','20: Files & File Systems'),
+    ('21','21: Compression'),
+    ('22','22: Keyboards & Command Line Interfaces'),
+    ('23','23: Screens & 2D Graphics'),
+    ('24','24: The Cold War and Consumerism'),
+    ('25','25: The Personal Computer Revolution'),
+    ('26','26: Graphical User Interfaces'),
+    ('27','27: 3D Graphics'),
+    ('28','28: Computer Networks'),
+    ('29','29: The Internet'),
+    ('30','30: The World Wide Web'),
+    ('31','31: Cybersecurity'),
+    ('32','32: Hackers & Cyber Attacks'),
+    ('33','33: Cryptography'),
+    ('34','34: Machine Learning & Artificial Intelligence'),
+    ('35','35: Computer Vision'),
+    ('36','36: Natural Language Processing'),
+    ('37','37: Robots'),
+    ('38','38: Psychology of Computing'),
+    ('39','39: Educational Technology'),
+    ('40','40: The Singularity, Skynet, and the Future of Computing'),
+    )
+    name = models.CharField(max_length=2, verbose_name='Assignment Name',choices=NAMES)
+
+    def __str__(self):
+        return self.name

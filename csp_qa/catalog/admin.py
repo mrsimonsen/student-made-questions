@@ -1,9 +1,8 @@
 from django.contrib import admin
-from .models import Question, MC, MA, FB, TF, SA
+from .models import TF_Question, MC_Question, SA_Question, FB_Question, Assignment
 
-admin.site.register(Question)
-admin.site.register(MC)
-admin.site.register(MA)
-admin.site.register(FB)
-admin.site.register(SA)
-admin.site.register(TF)
+admin.site.register(TF_Question)
+admin.site.register(MC_Question)
+admin.site.register(SA_Question)
+admin.site.register(FB_Question)
+admin.site.register(Assignment)
