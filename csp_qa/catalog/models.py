@@ -68,9 +68,37 @@ class MA(models.Model):
 
 class Question(models.Model):
     '''a unique question'''
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, help_text='unique ID for this question')
-    format = models.ForeignKey('Format', on_delete=models.SET_NULL,null=True)
+    FORMATS = (
+    ('FB','Fill in the Blank'),
+    ('MA', 'Multiple Answer'),
+    ('MC', 'Multiple Choice'),
+    ('SA', 'Short Answer'),
+    ('TF', 'True/False')
+    )
+    format = models.CharField(max_length=2, default='MC', choices=FORMATS, help_text='question format')
     question = models.TextField()
+
+    '''if format not in ("TF","SA"): #no numbers for TF or SA
+        d=0
+        v_n=''
+        v=[]
+        if format == "MC":
+            d=4
+            v_n="Number of choices"
+            v=[v_MC]
+        elif format == "FB":
+            d=1
+            v_n="Number of blanks"
+            v=[v_FB]
+        elif format == 'MA':
+            d=3,
+            v_n="Number of choices"
+            v=[v_MA]
+        num_responses = models.PositiveSmallIntegerField(
+        default=d,
+        verbose_name=v_n,
+        validators=v,
+        )'''
 
     def __str__(self):
         return f'{id} - {format}:{question}'
